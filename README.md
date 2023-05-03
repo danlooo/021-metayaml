@@ -58,6 +58,11 @@ example
 $ ./metayaml.py find is_example = True 2>/dev/null
 example
 example/EU
+
+$ ./metayaml.py find score "<" 4 2>/dev/null
+example/EU
+$ ./metayaml.py find score ">" 4 2>/dev/null
+example
 ```
 
 ## Thoughts

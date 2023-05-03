@@ -13,6 +13,14 @@ import logging
 from cachetools import cached, TTLCache
 from datetime import datetime, timedelta
 
+def parse_string(s):
+    if s in ["True", "False"]:
+        return bool(s)
+    try:
+        return(float(s))
+    except ValueError:
+        return s
+
 def merge(a, b, key = None):
     if a is not None and b is None:
         return a
@@ -64,19 +72,23 @@ def find(arg1, operator, arg2, directory):
     if not os.path.isdir(directory):
         raise ValueError("Must be a directory path and not a file.")
 
+    # handle strings
     already_harmonized = lambda x: x.startswith("\"") and x.endswith("\"")
     harmonize_string = lambda x: f"\"{x}\"" if isinstance(x, str) and not already_harmonized(x) else x
 
-    if operator in ["=", "is"] and arg2 in ["True", "False"]:
+    arg1 = parse_string(arg1)
+    arg2 = parse_string(arg2)
+ 
+    if operator in ["=", "is"] and isinstance(arg2, bool):
          expr = f"m.get({harmonize_string(arg1)}) == {arg2}"
     elif operator in ["=", "is"]:
         expr = f"m.get({harmonize_string(arg1)}) == {harmonize_string(arg2)}"
-    elif operator in ["<", ">"]:
+    elif operator in ["<", ">"] and isinstance(arg2, float):
         expr = f"m.get({harmonize_string(arg1)}) {operator} {harmonize_string(arg2)}"
     elif operator == "in":
         expr = f'{harmonize_string(arg1)} in m.get({harmonize_string(arg2)})'
     else:
-        raise NotImplementedError("Operator must be one of [=, in]")
+        raise ValueError("Operator and arguments do not match")
     
     for path in Path(directory).rglob("*meta.yml"):
         m = get_meta_data(path)
