@@ -10,6 +10,8 @@ import yaml
 import os
 from pathlib import Path
 import logging
+from cachetools import cached, TTLCache
+from datetime import datetime, timedelta
 
 def merge(a, b, key = None):
     if a is not None and b is None:
@@ -20,11 +22,8 @@ def merge(a, b, key = None):
         logging.info(f"overwrite {key} from '{b}' to '{a}'")
         return a
 
-@click.command()
-@click.argument("path", type=click.Path(exists=True)) 
-def main(path):
-    logging.basicConfig(filename="/dev/stderr", encoding="utf-8", level=logging.DEBUG)
-
+@cached(cache=TTLCache(maxsize=1e6, ttl=timedelta(hours=1), timer=datetime.now))
+def get_meta_data(path):
     yml_paths = []
     if os.path.isfile(path):
         yml_paths = [os.path.abspath(path) + ".yml"]
@@ -46,8 +45,36 @@ def main(path):
         with open(yml_path, "r") as f:
             cur_d = yaml.safe_load(f)
             keys = set((*d.keys(), *cur_d.keys()))
-            d = {k: merge(cur_d.get(k), d.get(k), k)  for k in keys}            
+            d = {k: merge(cur_d.get(k), d.get(k), k)  for k in keys}
+    return d
 
+@click.group()
+def main():
+    logging.basicConfig(filename="/dev/stderr", encoding="utf-8", level=logging.DEBUG)
+
+@main.command()
+@click.argument("key")
+@click.argument("value")
+@click.option("--directory", "-d", default=".")
+def find(key, value, directory):
+    """
+    Find files and directories based on a specific attribute stored in YAML meta data sidecar files.
+    """
+    logging.info("Meta data for files is not yet implemented")
+
+    for path in Path(directory).rglob("*meta.yml"):
+        m = get_meta_data(path)
+        if m[key] == value:
+            print(path.parents[0])
+    
+
+@main.command()
+@click.argument("path", type=click.Path(exists=True)) 
+def get(path):
+    """
+    Retrieves attributes of a directory or file based on YAML meta data sidecar files.
+    """
+    d = get_meta_data(path)
     print(yaml.dump(d))
 
 if __name__ == '__main__':

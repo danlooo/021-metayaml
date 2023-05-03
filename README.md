@@ -22,11 +22,11 @@ To create attributes of a directory, just create a file `meta.yml` into that dir
 Create a file `/path/foo.txt.yml` to create attributes to just the file `/path/foo.txt`.
 
 ```
-$ ./metayaml.py example
+$ ./metayaml.py get example
 description: all data
 is_example: true
 
-$ ./metayaml.py example/EU
+$ ./metayaml.py get example/EU
 INFO:root:overwrite description from 'all data' to 'EU data'
 description: EU data
 is_example: true
@@ -34,7 +34,7 @@ users:
 - dloos
 - fgans
 
-$ ./metayaml.py example/EU/de.txt
+$ ./metayaml.py get example/EU/de.txt
 INFO:root:overwrite description from 'all data' to 'EU data'
 INFO:root:overwrite users from '['dloos', 'fgans']' to '['djohn']'
 INFO:root:overwrite description from 'EU data' to 'Germany data'
@@ -43,6 +43,10 @@ has_sidecar_meta_file: true
 is_example: true
 users:
 - djohn
+
+# reverse search: get files using attributes
+$ ./metayaml.py find description "EU data" 2>/dev/null
+example/EU
 ```
 
 ## Thoughts
