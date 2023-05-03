@@ -45,8 +45,10 @@ users:
 - djohn
 
 # reverse search: get files using attributes
-$ ./metayaml.py find description "EU data" 2>/dev/null
+$ ./metayaml.py find dloos in users 2>/dev/null
 example/EU
+$ ./metayaml.py find description = "all data" 2>/dev/null
+example
 ```
 
 ## Thoughts

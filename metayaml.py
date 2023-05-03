@@ -53,20 +53,36 @@ def main():
     logging.basicConfig(filename="/dev/stderr", encoding="utf-8", level=logging.DEBUG)
 
 @main.command()
-@click.argument("key")
-@click.argument("value")
-@click.option("--directory", "-d", default=".")
-def find(key, value, directory):
+@click.argument("arg1", required = True)
+@click.argument("operator", default = "=", type=click.Choice(["=", "is", "in", "<", ">"]))
+@click.argument("arg2", required = True)
+@click.option("--directory", "-d", default=".", show_default=True, help="Search everything recursiveley inside this root directory")
+def find(arg1, operator, arg2, directory):
     """
     Find files and directories based on a specific attribute stored in YAML meta data sidecar files.
     """
-    logging.info("Meta data for files is not yet implemented")
+    if not os.path.isdir(directory):
+        raise ValueError("Must be a directory path and not a file.")
 
+    already_harmonized = lambda x: x.startswith("\"") and x.endswith("\"")
+    harmonize_string = lambda x: f"\"{x}\"" if isinstance(x, str) and not already_harmonized(x) else x
+
+    if operator in ["=", "is"]:
+        expr = f"m.get({harmonize_string(arg1)}) == {harmonize_string(arg2)}"
+    elif operator in ["<", ">"]:
+         expr = f"m.get({harmonize_string(arg1)}) {operator} {harmonize_string(arg2)}"
+    elif operator == "in":
+        expr = f'{harmonize_string(arg1)} in m.get({harmonize_string(arg2)})'
+    else:
+        raise NotImplementedError("Operator must be one of [=, in]")
+    
     for path in Path(directory).rglob("*meta.yml"):
         m = get_meta_data(path)
-        if m[key] == value:
-            print(path.parents[0])
-    
+        try:
+            if eval(expr):
+                print(path.parents[0])
+        except:
+            continue
 
 @main.command()
 @click.argument("path", type=click.Path(exists=True)) 
