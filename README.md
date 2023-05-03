@@ -21,6 +21,8 @@ Advantages:
 To create attributes of a directory, just create a file `meta.yml` into that directory.
 Create a file `/path/foo.txt.yml` to create attributes to just the file `/path/foo.txt`.
 
+### Forward search: Get attributes of a given directory or file
+
 ```
 $ ./metayaml.py get example
 description: all data
@@ -43,12 +45,19 @@ has_sidecar_meta_file: true
 is_example: true
 users:
 - djohn
+```
 
-# reverse search: get files using attributes
+# Reverse search: Find files matching giving attributes
+
+```
 $ ./metayaml.py find dloos in users 2>/dev/null
 example/EU
 $ ./metayaml.py find description = "all data" 2>/dev/null
 example
+
+$ ./metayaml.py find is_example = True 2>/dev/null
+example
+example/EU
 ```
 
 ## Thoughts

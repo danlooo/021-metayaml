@@ -67,10 +67,12 @@ def find(arg1, operator, arg2, directory):
     already_harmonized = lambda x: x.startswith("\"") and x.endswith("\"")
     harmonize_string = lambda x: f"\"{x}\"" if isinstance(x, str) and not already_harmonized(x) else x
 
-    if operator in ["=", "is"]:
+    if operator in ["=", "is"] and arg2 in ["True", "False"]:
+         expr = f"m.get({harmonize_string(arg1)}) == {arg2}"
+    elif operator in ["=", "is"]:
         expr = f"m.get({harmonize_string(arg1)}) == {harmonize_string(arg2)}"
     elif operator in ["<", ">"]:
-         expr = f"m.get({harmonize_string(arg1)}) {operator} {harmonize_string(arg2)}"
+        expr = f"m.get({harmonize_string(arg1)}) {operator} {harmonize_string(arg2)}"
     elif operator == "in":
         expr = f'{harmonize_string(arg1)} in m.get({harmonize_string(arg2)})'
     else:
