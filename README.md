@@ -47,7 +47,7 @@ users:
 - djohn
 ```
 
-# Reverse search: Find files matching giving attributes
+### Reverse search: Find files matching giving attributes
 
 ```
 $ ./metayaml.py find dloos in users 2>/dev/null
