@@ -83,7 +83,7 @@ def find(arg1, operator, arg2, directory):
          expr = f"m.get({harmonize_string(arg1)}) == {arg2}"
     elif operator in ["=", "is"]:
         expr = f"m.get({harmonize_string(arg1)}) == {harmonize_string(arg2)}"
-    elif operator in ["<", ">", "<=", ">="] and isinstance(arg2, float):
+    elif operator in ["<", ">", "<=", ">=", "=", "is", "=="] and isinstance(arg2, float):
         expr = f"m.get({harmonize_string(arg1)}) {operator} {harmonize_string(arg2)}"
     elif operator == "in":
         expr = f'{harmonize_string(arg1)} in m.get({harmonize_string(arg2)})'
