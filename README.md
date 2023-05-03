@@ -1,4 +1,4 @@
-# metayaml: Oragnize file and directory attributes using YAML files
+# metayaml: Organize file and directory attributes using YAML files
 
 This is a proof of concept on how to easily create meta data / attributes for files and directories.
 This works recursively, so attributes of a file are inherited from those from a parent directory if not specified directly.
