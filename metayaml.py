@@ -62,7 +62,7 @@ def main():
 
 @main.command()
 @click.argument("arg1", required = True)
-@click.argument("operator", default = "=", type=click.Choice(["=", "is", "in", "<", ">", "<=", ">="]))
+@click.argument("operator", default = "=", type=click.Choice(["=", "in", "<", ">", "<=", ">="]))
 @click.argument("arg2", required = True)
 @click.option("--directory", "-d", default=".", show_default=True, help="Search everything recursiveley inside this root directory")
 def find(arg1, operator, arg2, directory):
@@ -79,11 +79,11 @@ def find(arg1, operator, arg2, directory):
     arg1 = parse_string(arg1)
     arg2 = parse_string(arg2)
  
-    if operator in ["=", "is"] and isinstance(arg2, bool):
+    if operator == "=" and isinstance(arg2, bool):
          expr = f"m.get({harmonize_string(arg1)}) == {arg2}"
-    elif operator in ["=", "is"]:
+    elif operator == "=":
         expr = f"m.get({harmonize_string(arg1)}) == {harmonize_string(arg2)}"
-    elif operator in ["<", ">", "<=", ">=", "=", "is", "=="] and isinstance(arg2, float):
+    elif operator in ["<", ">", "<=", ">=", "="] and isinstance(arg2, float):
         expr = f"m.get({harmonize_string(arg1)}) {operator} {harmonize_string(arg2)}"
     elif operator == "in":
         expr = f'{harmonize_string(arg1)} in m.get({harmonize_string(arg2)})'
