@@ -108,8 +108,10 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
     return res
 
 @click.group()
-def main():
-    logging.basicConfig(filename="/dev/stderr", encoding="utf-8", level=logging.DEBUG)
+@click.option("--verbose", "-v", default = False, show_default = True, is_flag=True)
+def main(verbose):
+    if verbose:
+        logging.basicConfig(filename="/dev/stderr", encoding="utf-8", level=logging.DEBUG)
 
 @main.command()
 @click.argument("arg1", required = True)
