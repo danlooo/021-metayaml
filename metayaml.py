@@ -16,8 +16,10 @@ from datetime import datetime, timedelta
 from tempfile import NamedTemporaryFile
 
 def parse_string(s):
-    if s in ["True", "False"]:
-        return bool(s)
+    if s == "True":
+        return True
+    if s == "False":
+        return False
     try:
         return(float(s))
     except ValueError:
@@ -66,12 +68,12 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
         directory = os.path.abspath(directory)
 
     # handle strings
-    already_harmonized = lambda x: x.startswith("\"") and x.endswith("\"")
-    harmonize_string = lambda x: f"\"{x}\"" if isinstance(x, str) and not already_harmonized(x) else x
-
     arg1 = parse_string(arg1)
     arg2 = parse_string(arg2)
- 
+    
+    already_harmonized = lambda x: x.startswith("\"") and x.endswith("\"")
+    harmonize_string = lambda x: f"\"{x}\"" if isinstance(x, str) and not already_harmonized(x) else x 
+
     if operator == "=" and isinstance(arg2, bool):
          expr = f"m.get({harmonize_string(arg1)}) == {arg2}"
     elif operator == "=":
@@ -85,7 +87,6 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
     
     # save results to enable sorting
     res = []
-
     for path in Path(directory).rglob("*meta.yml"):
         m = get_meta_data(path)
         try:
@@ -95,6 +96,7 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
                 res.append(f"- {path.parents[0]}/**")
         except:
             continue
+    
     # child rule overwrites parent
     # rclone takes the first match
     res.sort(reverse=True, key=len)
@@ -139,8 +141,8 @@ def find(arg1, operator, arg2, directory, abs_path):
     # doing this for directories is ambiguous in the recursive mode: It would output the directory even if some children don't match
 
     rules = create_rclone_rules(arg1, operator, arg2, directory, abs_path)
-
-    with NamedTemporaryFile() as tmp:
+    
+    with NamedTemporaryFile() as tmp: 
         with open(tmp.name, "w") as f:
             f.writelines([x+"\n" for x in rules])
         p = Popen(["rclone", "lsf", directory, "--files-only", "--recursive", "--filter-from", tmp.name])
