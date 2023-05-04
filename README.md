@@ -16,53 +16,124 @@ Advantages:
 - Works with Git
 - Very flexible: Can add attributes of any type including string, numbers and lists of them
 
-## Get Started
+## Usage
 
 To create attributes of a directory, just create a file `meta.yml` into that directory.
 Create a file `/path/foo.txt.yml` to create attributes to just the file `/path/foo.txt`.
 
-### Forward search: Get attributes of a given directory or file
+Files matching these recursively defined attributes can be then retrieved with the command `metayaml find`.
+On the other hand, attributes of a given file or directory can be retrieved with the command `metayaml get`.
+
+## Installation
+
+First, ensure that [rclone](https://github.com/rclone/rclone) is available on the machine. Then, install metayaml using:
 
 ```
-$ ./metayaml.py get example
+sudo wget https://raw.githubusercontent.com/danlooo/021-metayaml/master/metayaml.py -O /usr/local/bin/metayaml --no-check-certificate && sudo chmod +x /usr/local/bin/metayaml
+```
+
+Get help using `metayaml --help`
+
+```
+Usage: metayaml [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  -v, --verbose
+  --help         Show this message and exit.
+
+Commands:
+  filter  Create rclone filter rules for files and directories matching a...
+  find    Find files matching a specific attribute stored in YAML meta...
+  get     Retrieves attributes of a directory or file based on YAML meta...
+```
+
+## Forward search: Get attributes of a given directory or file
+
+Get attributes about a directory using `metayaml get example/Americas`
+
+```
 description: all data
 is_example: true
+score: 5
+```
 
-$ ./metayaml.py get example/EU
-INFO:root:overwrite description from 'all data' to 'EU data'
+or `metayaml get example/EU`
+
+```
 description: EU data
 is_example: true
+score: 3.5
 users:
 - dloos
 - fgans
+```
 
-$ ./metayaml.py get example/EU/de.txt
+Verbose mode to get warnings in case a value was overwritten by a child directory: `metayaml -v get example/EU`
+
+```
 INFO:root:overwrite description from 'all data' to 'EU data'
-INFO:root:overwrite users from '['dloos', 'fgans']' to '['djohn']'
-INFO:root:overwrite description from 'EU data' to 'Germany data'
+INFO:root:overwrite score from '5' to '3.5'
+description: EU data
+is_example: true
+score: 3.5
+users:
+- dloos
+- fgans
+```
+
+Get attributes of a single file: `metayaml get example/EU/de.txt`
+
+```
 description: Germany data
 has_sidecar_meta_file: true
 is_example: true
+score: 3.5
 users:
 - djohn
 ```
 
-### Reverse search: Find files matching giving attributes
+## Reverse search: Find files matching giving attributes
+
+Find all files for which a particular user is associated:
+`metayaml find dloos in users`
 
 ```
-$ ./metayaml.py find dloos in users 2>/dev/null
-example/EU
-$ ./metayaml.py find description = "all data" 2>/dev/null
-example
+example/EU/be.txt
+example/EU/de.txt
+example/EU/de.txt.yml
+example/EU/nl.txt
+```
 
-$ ./metayaml.py find is_example = True 2>/dev/null
-example
-example/EU
+Files in which the score is less than a given number: `metayaml find score "<" 4`
 
-$ ./metayaml.py find score "<" 4 2>/dev/null
-example/EU
-$ ./metayaml.py find score ">" 4 2>/dev/null
-example
+```
+example/EU/be.txt
+example/EU/de.txt
+example/EU/de.txt.yml
+example/EU/nl.txt
+```
+
+and also `metayaml find score ">=" 4`
+
+```
+example/Americas/South_America/ar.txt
+example/Americas/South_America/br.txt
+example/Americas/South_America/cl.txt
+example/Americas/North_America/ca.txt
+example/Americas/North_America/us.txt
+```
+
+For boolean values, i.e., tags will show no file, because all files were examples: `metayaml find is_example = False`
+
+Metayaml uses [rclone](https://github.com/rclone/rclone) to find and filter files.
+It creates rclone filter rules that can be also exported: `metayaml filter score "<" 4`
+
+```
+# rclone [filter rules](https://rclone.org/filtering/) for searching 'score < 4.0' inside '/home/dloos/lab/021-metayaml'
+- **/meta.yml
++ example/EU/**
+- example/**
+- **
 ```
 
 ## Thoughts
