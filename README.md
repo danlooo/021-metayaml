@@ -126,10 +126,10 @@ example/Americas/North_America/us.txt
 For boolean values, i.e., tags will show no file, because all files were examples: `metayaml find is_example = False`
 
 Metayaml uses [rclone](https://github.com/rclone/rclone) to find and filter files.
-It creates rclone filter rules that can be also exported: `metayaml filter score "<" 4`
+It creates [rclone filter rules](https://rclone.org/filtering/) that can be also exported: `metayaml filter score "<" 4`
 
 ```
-# rclone [filter rules](https://rclone.org/filtering/) for searching 'score < 4.0' inside '/home/dloos/lab/021-metayaml'
+# rclone filter rules for searching 'score < 4.0' inside '/home/dloos/lab/021-metayaml'
 - **/meta.yml
 + example/EU/**
 - example/**
