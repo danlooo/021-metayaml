@@ -122,7 +122,6 @@ Find all files for which a particular user is associated:
 ```
 example/EU/be.txt
 example/EU/de.txt
-example/EU/de.txt.yml
 example/EU/nl.txt
 ```
 
