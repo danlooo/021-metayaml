@@ -8,10 +8,12 @@
 import click
 import yaml
 import os
+from subprocess import Popen
 from pathlib import Path
 import logging
 from cachetools import cached, TTLCache
 from datetime import datetime, timedelta
+from tempfile import NamedTemporaryFile
 
 def parse_string(s):
     if s in ["True", "False"]:
@@ -56,20 +58,7 @@ def get_meta_data(path):
             d = {k: merge(cur_d.get(k), d.get(k), k)  for k in keys}
     return d
 
-@click.group()
-def main():
-    logging.basicConfig(filename="/dev/stderr", encoding="utf-8", level=logging.DEBUG)
-
-@main.command()
-@click.argument("arg1", required = True)
-@click.argument("operator", default = "=", type=click.Choice(["=", "in", "<", ">", "<=", ">="]))
-@click.argument("arg2", required = True)
-@click.option("--directory", "-d", default=".", show_default=True, help="Search everything recursiveley inside this root directory")
-@click.option("--abs-path", "-a", default = False, show_default = True, is_flag = True, help = "Use absolute paths")
-def filter(arg1, operator, arg2, directory, abs_path):
-    """
-    Find files and directories based on a specific attribute stored in YAML meta data sidecar files.
-    """
+def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
     if not os.path.isdir(directory):
         raise ValueError("Must be a directory path and not a file.")
     
@@ -94,9 +83,9 @@ def filter(arg1, operator, arg2, directory, abs_path):
     else:
         raise ValueError("Operator and arguments do not match")
     
-
     # save results to enable sorting
     res = []
+
     for path in Path(directory).rglob("*meta.yml"):
         m = get_meta_data(path)
         try:
@@ -108,14 +97,52 @@ def filter(arg1, operator, arg2, directory, abs_path):
             continue
     # child rule overwrites parent
     # rclone takes the first match
-    res.sort(reverse=True)
-
+    res.sort(reverse=True, key=len)
     res.append("- **")
-    res = ["- **/meta.yml"] + res
 
-    print(f"# rclone filter rules for searching '{arg1} {operator} {arg2}' inside '{os.path.abspath(directory)}'")
-    for l in res:
+    res = [
+        f"# rclone filter rules for searching '{arg1} {operator} {arg2}' inside '{os.path.abspath(directory)}'"
+        , "- **/meta.yml"
+    ] + res
+
+    return res
+
+@click.group()
+def main():
+    logging.basicConfig(filename="/dev/stderr", encoding="utf-8", level=logging.DEBUG)
+
+@main.command()
+@click.argument("arg1", required = True)
+@click.argument("operator", default = "=", type=click.Choice(["=", "in", "<", ">", "<=", ">="]))
+@click.argument("arg2", required = True)
+@click.option("--directory", "-d", default=".", show_default=True, help="Search everything recursiveley inside this root directory")
+@click.option("--abs-path", "-a", default = False, show_default = True, is_flag = True, help = "Use absolute paths")
+def filter(arg1, operator, arg2, directory, abs_path):
+    """
+    Create rclone filter rules for files and directories matching a specific attribute stored in YAML meta data sidecar files.
+    """
+    for l in create_rclone_rules(arg1, operator, arg2, directory, abs_path):
         print(l)
+
+@main.command()
+@click.argument("arg1", required = True)
+@click.argument("operator", default = "=", type=click.Choice(["=", "in", "<", ">", "<=", ">="]))
+@click.argument("arg2", required = True)
+@click.option("--directory", "-d", default=".", show_default=True, help="Search everything recursiveley inside this root directory")
+@click.option("--abs-path", "-a", default = False, show_default = True, is_flag = True, help = "Use absolute paths")
+def find(arg1, operator, arg2, directory, abs_path):
+    """
+    Find files matching a specific attribute stored in YAML meta data sidecar files.
+    """
+    # doing this for directories is ambiguous in the recursive mode: It would output the directory even if some children don't match
+
+    rules = create_rclone_rules(arg1, operator, arg2, directory, abs_path)
+
+    with NamedTemporaryFile() as tmp:
+        with open(tmp.name, "w") as f:
+            f.writelines([x+"\n" for x in rules])
+        p = Popen(["rclone", "lsf", directory, "--files-only", "--recursive", "--filter-from", tmp.name])
+        p.wait()
 
 @main.command()
 @click.argument("path", type=click.Path(exists=True)) 
