@@ -111,6 +111,7 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
     res = [
         f"# rclone filter rules for searching '{arg1} {operator} {arg2}' inside '{os.path.abspath(directory)}'",
         "- **/meta.yml",
+        "- **.meta.yml"
     ] + res
 
     return res
