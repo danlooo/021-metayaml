@@ -65,12 +65,16 @@ def main():
 @click.argument("operator", default = "=", type=click.Choice(["=", "in", "<", ">", "<=", ">="]))
 @click.argument("arg2", required = True)
 @click.option("--directory", "-d", default=".", show_default=True, help="Search everything recursiveley inside this root directory")
-def find(arg1, operator, arg2, directory):
+@click.option("--abs-path", "-a", default = False, show_default = True, is_flag = True, help = "Use absolute paths")
+def filter(arg1, operator, arg2, directory, abs_path):
     """
     Find files and directories based on a specific attribute stored in YAML meta data sidecar files.
     """
     if not os.path.isdir(directory):
         raise ValueError("Must be a directory path and not a file.")
+    
+    if abs_path:
+        directory = os.path.abspath(directory)
 
     # handle strings
     already_harmonized = lambda x: x.startswith("\"") and x.endswith("\"")
@@ -90,13 +94,28 @@ def find(arg1, operator, arg2, directory):
     else:
         raise ValueError("Operator and arguments do not match")
     
+
+    # save results to enable sorting
+    res = []
     for path in Path(directory).rglob("*meta.yml"):
         m = get_meta_data(path)
         try:
             if eval(expr):
-                print(path.parents[0])
+                 res.append(f"+ {path.parents[0]}/**")
+            else:
+                res.append(f"- {path.parents[0]}/**")
         except:
             continue
+    # child rule overwrites parent
+    # rclone takes the first match
+    res.sort(reverse=True)
+
+    res.append("- **")
+    res = ["- **/meta.yml"] + res
+
+    print(f"# rclone filter rules for searching '{arg1} {operator} {arg2}' inside '{os.path.abspath(directory)}'")
+    for l in res:
+        print(l)
 
 @main.command()
 @click.argument("path", type=click.Path(exists=True)) 
