@@ -29,7 +29,9 @@ On the other hand, attributes of a given file or directory can be retrieved with
 First, ensure that [rclone](https://github.com/rclone/rclone) is available on the machine. Then, install metayaml using:
 
 ```
-sudo wget https://raw.githubusercontent.com/danlooo/021-metayaml/master/metayaml.py -O /usr/local/bin/metayaml --no-check-certificate && sudo chmod +x /usr/local/bin/metayaml
+sudo wget https://raw.githubusercontent.com/danlooo/021-metayaml/master/metayaml.py \
+  -O /usr/local/bin/metayaml --no-check-certificate && \
+  sudo chmod +x /usr/local/bin/metayaml
 ```
 
 Get help using `metayaml --help`
@@ -45,6 +47,26 @@ Commands:
   filter  Create rclone filter rules for files and directories matching a...
   find    Find files matching a specific attribute stored in YAML meta...
   get     Retrieves attributes of a directory or file based on YAML meta...
+```
+
+Help page for a specific command: `metayaml find --help`
+
+```
+Usage: metayaml.py find [OPTIONS] QUERY
+
+  Find files matching a specific attribute stored in YAML meta data sidecar
+  files.
+
+  Examples:
+  metayaml find "score > 5"
+  metayaml find "djohn in users"
+  metayaml find "is_example = True"
+
+Options:
+  -d, --directory PATH  Search everything recursiveley inside this root
+                        directory  [default: .]
+  -a, --abs-path        Use absolute paths
+  --help                Show this message and exit.
 ```
 
 ## Forward search: Get attributes of a given directory or file
@@ -95,7 +117,7 @@ users:
 ## Reverse search: Find files matching giving attributes
 
 Find all files for which a particular user is associated:
-`metayaml find dloos in users`
+`metayaml find "dloos in users"`
 
 ```
 example/EU/be.txt
@@ -104,7 +126,7 @@ example/EU/de.txt.yml
 example/EU/nl.txt
 ```
 
-Files in which the score is less than a given number: `metayaml find score "<" 4`
+Files in which the score is less than a given number: `metayaml find "score < 4"`
 
 ```
 example/EU/be.txt
@@ -113,7 +135,7 @@ example/EU/de.txt.yml
 example/EU/nl.txt
 ```
 
-and also `metayaml find score ">=" 4`
+and also `metayaml find "score >= 4"`
 
 ```
 example/Americas/South_America/ar.txt
@@ -123,10 +145,10 @@ example/Americas/North_America/ca.txt
 example/Americas/North_America/us.txt
 ```
 
-For boolean values, i.e., tags will show no file, because all files were examples: `metayaml find is_example = False`
+For boolean values, i.e., tags will show no file, because all files were examples: `metayaml find "is_example = False"`
 
 Metayaml uses [rclone](https://github.com/rclone/rclone) to find and filter files.
-It creates [rclone filter rules](https://rclone.org/filtering/) that can be also exported: `metayaml filter score "<" 4`
+It creates [rclone filter rules](https://rclone.org/filtering/) that can be also exported: `metayaml filter "score < 4"`
 
 ```
 # rclone filter rules for searching 'score < 4.0' inside '/home/dloos/lab/021-metayaml'
