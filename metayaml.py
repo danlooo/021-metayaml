@@ -11,10 +11,10 @@ import os
 from subprocess import Popen
 from pathlib import Path
 import logging
-from cachetools import cached, TTLCache
-from datetime import datetime, timedelta
 from tempfile import NamedTemporaryFile
 import re
+
+operators = ["<", ">", "=", "<=", ">=", "in"]
 
 def parse_string(s):
     if s == "True":
@@ -35,7 +35,6 @@ def merge(a, b, key=None):
     else:
         logging.info(f"overwrite {key} from '{b}' to '{a}'")
         return a
-
 
 def get_meta_data(path):
     yml_paths = []
@@ -72,15 +71,15 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
     arg1 = parse_string(arg1)
     arg2 = parse_string(arg2)
 
-    already_harmonized = lambda x: x.startswith('"') and x.endswith('"')
+    already_harmonized = lambda x: x.startswith("'") and x.endswith(",")
     harmonize_string = (
-        lambda x: f'"{x}"' if isinstance(x, str) and not already_harmonized(x) else x
+        lambda x: f"'{x}'" if isinstance(x, str) and not already_harmonized(x) else x
     )
 
     if operator == "=" and isinstance(arg2, bool):
         expr = f"m.get({harmonize_string(arg1)}) == {arg2}"
     elif operator == "=":
-        expr = f"m.get({harmonize_string(arg1)}) == {harmonize_string(arg2)}"
+        expr = f"m.get({harmonize_string(arg1)}) == {arg2}"
     elif operator in ["<", ">", "<=", ">=", "="] and isinstance(arg2, float):
         expr = f"m.get({harmonize_string(arg1)}) {operator} {harmonize_string(arg2)}"
     elif operator == "in":
@@ -161,8 +160,12 @@ def filter(query, directory, abs_path):
     metayaml filter "score > 5"
     metayaml filter "djohn in users"
     metayaml filter "is_example = True"
+    metayaml find "description = 'foo' " 
     """
-    arg1, operator, arg2 = [x for x in query.split(" ") if len(x) > 0]
+
+    arg1, arg2 = map(lambda x: x.strip(), re.split("|".join(operators), query))
+    operator = re.findall("|".join(operators), query)[0]
+
     for l in create_rclone_rules(arg1, operator, arg2, directory, abs_path):
         print(l)
 
@@ -194,10 +197,13 @@ def find(query, directory, abs_path):
     metayaml find "score > 5"
     metayaml find "djohn in users"
     metayaml find "is_example = True"
+    metayaml find "description = 'foo' "
     """
     # doing this for directories is ambiguous in the recursive mode: It would output the directory even if some children don't match
 
-    arg1, operator, arg2 = [x for x in query.split(" ") if len(x) > 0]
+    arg1, arg2 = map(lambda x: x.strip(), re.split("|".join(operators), query))
+    operator = re.findall("|".join(operators), query)[0]
+
     rules = create_rclone_rules(arg1, operator, arg2, directory, abs_path)
 
     with NamedTemporaryFile() as tmp:
