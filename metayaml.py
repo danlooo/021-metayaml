@@ -14,7 +14,7 @@ import logging
 from cachetools import cached, TTLCache
 from datetime import datetime, timedelta
 from tempfile import NamedTemporaryFile
-
+import re
 
 def parse_string(s):
     if s == "True":
@@ -37,17 +37,14 @@ def merge(a, b, key=None):
         return a
 
 
-@cached(cache=TTLCache(maxsize=1e6, ttl=timedelta(hours=1), timer=datetime.now))
 def get_meta_data(path):
     yml_paths = []
     if os.path.isfile(path):
-        yml_paths = [os.path.abspath(path) + ".yml"]
+        yml_paths = [os.path.abspath(path) + ".meta.yml"]
     else:
         yml_paths = [os.path.abspath(path) + "/meta.yml"]
 
-    yml_paths += [os.path.abspath(path) + ".yaml"]
     yml_paths += [os.path.abspath(path) + ".meta.yml"]
-    yml_paths += [os.path.abspath(path) + ".meta.yaml"]
 
     yml_paths += [f"{x}/meta.yml" for x in Path(os.path.abspath(path)).parents]
     yml_paths += [f"{x}/meta.yaml" for x in Path(os.path.abspath(path)).parents]
@@ -94,12 +91,23 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
     # save results to enable sorting
     res = []
     for path in Path(directory).rglob("*meta.yml"):
+        # extract corresponding data file if single meta data file was found
+        if not path.name.endswith("/meta.yml"):
+            path = Path(re.sub("\.meta\.yml$", "", str(path)))
+
         m = get_meta_data(path)
+
+        if str(path).endswith("/meta.yml"):
+            path_str = str(path.parents[0]) + "/**"
+        else:
+            path_str = str(path)
+
+        # print(path, m, eval(expr))
         try:
             if eval(expr):
-                res.append(f"+ {path.parents[0]}/**")
+                res.append(f"+ {path_str}")
             else:
-                res.append(f"- {path.parents[0]}/**")
+                res.append(f"- {path_str}")
         except:
             continue
 
