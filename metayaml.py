@@ -267,6 +267,10 @@ def export(root_dir):
     root_dir_s = Path(os.path.expanduser(root_dir)).absolute()
 
     print(f"# metayaml export of directory {root_dir_s}")
+    print(
+        "# Note: This export is the raw data. Missing attributes were inferred from parent directories in metayaml."
+    )
+    print("")
     d = {}
     for p in get_meta_yaml_paths(root_dir_s):
         with open(p, "r") as f:
