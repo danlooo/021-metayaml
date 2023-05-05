@@ -5,7 +5,10 @@ Attributes of files and directories stored in YAML sidecar files
 ## Installation
 
 ```bash
-$ pip install metayaml
+git clone https://github.com/danlooo/metayaml
+cd metayaml
+poetry install
+poetry run metayaml
 ```
 
 ## Usage
