@@ -8,13 +8,29 @@
 import click
 import yaml
 import os
-from subprocess import Popen
+from subprocess import Popen, check_output
 from pathlib import Path
 import logging
 from tempfile import NamedTemporaryFile
 import re
 
 operators = ["<", ">", "=", "<=", ">=", "in"]
+
+
+def get_meta_yaml_paths(path):
+    res = check_output(
+        [
+            "rclone",
+            "lsf",
+            "--files-only",
+            "--recursive",
+            "--include",
+            "**meta.yml",
+            path,
+        ]
+    )
+    return [Path(os.path.join(path, x)) for x in res.decode().splitlines()]
+
 
 def parse_string(s):
     if s == "True":
@@ -36,6 +52,7 @@ def merge(a, b, key=None):
         logging.info(f"overwrite {key} from '{b}' to '{a}'")
         return a
 
+
 def get_meta_data(path):
     yml_paths = []
     if os.path.isfile(path):
@@ -55,6 +72,8 @@ def get_meta_data(path):
     for yml_path in yml_paths:
         with open(yml_path, "r") as f:
             cur_d = yaml.safe_load(f)
+            if cur_d is None:
+                continue
             keys = set((*d.keys(), *cur_d.keys()))
             d = {k: merge(cur_d.get(k), d.get(k), k) for k in keys}
     return d
@@ -64,8 +83,9 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
     if not os.path.isdir(directory):
         raise ValueError("Must be a directory path and not a file.")
 
+    abs_directory = os.path.abspath(directory)
     if abs_path:
-        directory = os.path.abspath(directory)
+        directory = abs_directory
 
     # handle strings
     arg1 = parse_string(arg1)
@@ -89,10 +109,12 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
 
     # save results to enable sorting
     res = []
-    for path in Path(directory).rglob("*meta.yml"):
+    for path in get_meta_yaml_paths(directory):
         # extract corresponding data file if single meta data file was found
         if not path.name.endswith("/meta.yml"):
             path = Path(re.sub("\.meta\.yml$", "", str(path)))
+        else:
+            path = Path(path)
 
         m = get_meta_data(path)
 
@@ -101,7 +123,6 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
         else:
             path_str = str(path)
 
-        # print(path, m, eval(expr))
         try:
             if eval(expr):
                 res.append(f"+ {path_str}")
@@ -118,7 +139,7 @@ def create_rclone_rules(arg1, operator, arg2, directory, abs_path):
     res = [
         f"# rclone filter rules for searching '{arg1} {operator} {arg2}' inside '{os.path.abspath(directory)}'",
         "- **/meta.yml",
-        "- **.meta.yml"
+        "- **.meta.yml",
     ] + res
 
     return res
@@ -160,7 +181,7 @@ def filter(query, directory, abs_path):
     metayaml filter "score > 5"
     metayaml filter "djohn in users"
     metayaml filter "is_example = True"
-    metayaml find "description = 'foo' " 
+    metayaml find "description = 'foo' "
     """
 
     arg1, arg2 = map(lambda x: x.strip(), re.split("|".join(operators), query))
@@ -220,7 +241,7 @@ def find(query, directory, abs_path):
                 tmp.name,
             ]
         )
-        p.wait()
+        p.wait()  # wait to keep tmp file alive
 
 
 @main.command()
