@@ -32,9 +32,7 @@ On the other hand, attributes of a given file or directory can be retrieved with
 First, ensure that [rclone](https://github.com/rclone/rclone) is available on the machine. Then, install metayaml using:
 
 ```
-sudo wget https://raw.githubusercontent.com/danlooo/021-metayaml/master/metayaml.py \
-  -O /usr/local/bin/metayaml --no-check-certificate && \
-  sudo chmod +x /usr/local/bin/metayaml
+python -m pip install 'metayaml @ git+https://github.com/danlooo/metayaml'
 ```
 
 Get help using `metayaml --help`
