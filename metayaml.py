@@ -254,5 +254,25 @@ def get(path):
     print(yaml.dump(d))
 
 
+@main.command()
+@click.argument("root_dir", type=click.Path(exists=True))
+def export(root_dir):
+    """
+    Export all YAML meta data to one YAML file
+
+    \b
+    root_dir should be / to ensure that all meta data files are collected.
+    Otherwise, recursive inheritance of attributes can not be retrieved from the exported data
+    """
+    root_dir_s = Path(os.path.expanduser(root_dir)).absolute()
+
+    print(f"# metayaml export of directory {root_dir_s}")
+    d = {}
+    for p in get_meta_yaml_paths(root_dir_s):
+        with open(p, "r") as f:
+            d[str(p.absolute())] = yaml.safe_load(f)
+    print(yaml.dump(d))
+
+
 if __name__ == "__main__":
     main()
