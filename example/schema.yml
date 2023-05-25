@@ -1,0 +1,16 @@
+# JSON Schema
+type: object
+properties:
+  description:
+    type: string
+  users:
+    type: array
+    items:
+      type: string
+  is_example:
+    type: boolean
+  score:
+    type: number
+required:
+  - description
+  - score

@@ -13,6 +13,7 @@ from pathlib import Path
 import logging
 from tempfile import NamedTemporaryFile
 import re
+from jsonschema import validate, ValidationError
 
 operators = ["<", ">", "=", "<=", ">=", "in"]
 
@@ -241,6 +242,22 @@ def find(query, directory, abs_path):
             ]
         )
         p.wait()  # wait to keep tmp file alive
+
+@main.command()
+@click.argument("meta_path", type=click.Path(exists=True))
+@click.argument("schema_path", type=click.Path(exists=True))
+def validate(meta_path, schema_path):
+    """
+    Validate a YAML file
+    """
+    meta = yaml.safe_load(open(meta_path))
+    schema = yaml.safe_load(open(schema_path))
+
+    try:
+        validate(meta, schema)
+    except ValidationError as e:
+        raise(e)
+    print("Validation sucessfull")
 
 
 @main.command()
