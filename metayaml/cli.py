@@ -13,7 +13,8 @@ from pathlib import Path
 import logging
 from tempfile import NamedTemporaryFile
 import re
-from jsonschema import validate, ValidationError
+import sys
+import jsonschema
 
 operators = ["<", ">", "=", "<=", ">=", "in"]
 
@@ -254,8 +255,9 @@ def validate(meta_path, schema_path):
     schema = yaml.safe_load(open(schema_path))
 
     try:
-        validate(meta, schema)
-    except ValidationError as e:
+        jsonschema.validate(meta, schema)
+    except jsonschema.ValidationError as e:
+        sys.tracebacklimit = 0
         raise(e)
     print("Validation sucessfull")
 
