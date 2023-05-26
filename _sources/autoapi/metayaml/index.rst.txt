@@ -1,0 +1,15 @@
+:py:mod:`metayaml`
+==================
+
+.. py:module:: metayaml
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   cli/index.rst
+
+

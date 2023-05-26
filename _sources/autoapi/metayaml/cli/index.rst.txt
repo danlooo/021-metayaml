@@ -1,0 +1,103 @@
+:py:mod:`metayaml.cli`
+======================
+
+.. py:module:: metayaml.cli
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   metayaml.cli.get_meta_yaml_paths
+   metayaml.cli.parse_string
+   metayaml.cli.merge
+   metayaml.cli.get_meta_data
+   metayaml.cli.create_rclone_rules
+   metayaml.cli.main
+   metayaml.cli.filter
+   metayaml.cli.find
+   metayaml.cli.validate
+   metayaml.cli.get
+   metayaml.cli.export
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   metayaml.cli.operators
+
+
+.. py:data:: operators
+   :value: ['<', '>', '=', '<=', '>=', 'in']
+
+   
+
+.. py:function:: get_meta_yaml_paths(path)
+
+
+.. py:function:: parse_string(s)
+
+
+.. py:function:: merge(a, b, key=None)
+
+
+.. py:function:: get_meta_data(path)
+
+
+.. py:function:: create_rclone_rules(arg1, operator, arg2, directory, abs_path)
+
+
+.. py:function:: main(verbose)
+
+
+.. py:function:: filter(query, directory, abs_path)
+
+   Create rclone filter rules for files and directories matching a specific attribute stored in YAML meta data sidecar files.
+
+   
+   Examples:
+   metayaml filter "score > 5"
+   metayaml filter "djohn in users"
+   metayaml filter "is_example = True"
+   metayaml find "description = 'foo' "
+
+
+.. py:function:: find(query, directory, abs_path)
+
+   Find files matching a specific attribute stored in YAML meta data sidecar files.
+
+   
+   Examples:
+   metayaml find "score > 5"
+   metayaml find "djohn in users"
+   metayaml find "is_example = True"
+   metayaml find "description = 'foo' "
+
+
+.. py:function:: validate(meta_path, schema_path)
+
+   Validate a YAML file
+
+
+.. py:function:: get(path)
+
+   Retrieves attributes of a directory or file based on YAML meta data sidecar files.
+
+
+.. py:function:: export(root_dir)
+
+   Export all YAML meta data to one YAML file
+
+   
+   root_dir should be / to ensure that all meta data files are collected.
+   Otherwise, recursive inheritance of attributes can not be retrieved from the exported data
+
+
