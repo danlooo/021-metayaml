@@ -1,0 +1,28 @@
+# JSON Schema for metayaml files
+schema: https://json-schema.org/draft/2020-12/schema
+id: bgc-jena.mpg.de/metayaml/schema
+title: Metayaml schema
+description: Attributes of files and directories stored in YAML sidecar files
+type: object
+properties:
+  description:
+    type: string
+  responsible:
+    type: string
+  users:
+    type: array
+    items:
+      type: string
+  expires:
+    anyOf:
+      - type: string
+        pattern: "^([0-9]+-?)+$"
+      - type: number
+  labels:
+    type: array
+    items:
+      type: string
+required:
+  - description
+  - responsible
+  - expires

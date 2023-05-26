@@ -1,0 +1,12 @@
+description: test
+responsible: fgans
+expires: 2024-07
+users:
+  - dloos
+  - fgans
+labels:
+  - project_1
+  - high_res
+  - esa
+foo: 1
+bar: baz
