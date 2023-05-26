@@ -4,10 +4,9 @@ on: [push, pull_request]
 
 jobs:
   ci:
-    # Set up operating system
     runs-on: ubuntu-latest
-
-    # Define job steps
+    permissions:
+      contents: write
     steps:
       - name: Set up Python
         uses: actions/setup-python@v2
