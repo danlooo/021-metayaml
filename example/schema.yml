@@ -1,4 +1,8 @@
-# JSON Schema
+# JSON Schema for metayaml files
+schema: https://json-schema.org/draft/2020-12/schema
+id: https://github.com/danlooo/metayaml
+title: Metayaml schema
+description: Attributes of files and directories stored in YAML sidecar files
 type: object
 properties:
   description:
